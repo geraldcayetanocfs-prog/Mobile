@@ -2,6 +2,7 @@
   "name": "mobile-monitoring-server",
   "version": "1.0.0",
   "description": "Webhook server for UiPath monitoring app",
+  "license": "MIT",
   "main": "server.js",
   "engines": {
     "node": "18.x"
@@ -12,6 +13,7 @@
   "dependencies": {
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "firebase-admin": "^13.5.0"
   }
 }

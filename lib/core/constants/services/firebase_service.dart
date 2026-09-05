@@ -1,6 +1,8 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:mobile_monitoring/models/notification_model.dart';
+
 class FirebaseService {
   final FirebaseMessaging _firebaseMessaging =
       FirebaseMessaging.instance;
@@ -34,5 +36,28 @@ class FirebaseService {
 
   Future<String?> getToken() async {
     return _firebaseMessaging.getToken();
+  }
+
+  void listenForNotifications(
+    void Function(NotificationModel notification) onNotification,
+  ) {
+    FirebaseMessaging.onMessage.listen((message) {
+      final data = message.data;
+      onNotification(
+        NotificationModel(
+          process: data['process']?.toString() ?? 'Firebase',
+          status: data['status']?.toString() ?? 'Received',
+          message: data['message']?.toString() ??
+              message.notification?.body ??
+              'New notification received',
+          machine: data['machine']?.toString() ?? 'Unknown',
+          timestamp: DateTime.now(),
+        ),
+      );
+    });
+  }
+
+  static Future<void> handleBackgroundMessage(RemoteMessage message) async {
+    debugPrint('Background FCM message received: ${message.messageId}');
   }
 }

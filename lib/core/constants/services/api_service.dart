@@ -39,4 +39,16 @@ class ApiService {
 
     throw Exception('Webhook failed: ${response.statusCode}');
   }
+
+  Future<void> registerDeviceToken(String token) async {
+    final response = await http.post(
+      Uri.parse(ApiEndpoints.registerDevice),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'token': token}),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Device registration failed: ${response.statusCode}');
+    }
+  }
 }
