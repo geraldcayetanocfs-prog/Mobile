@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "584287772550",
+    "project_id": "mobile-dac45",
+    "storage_bucket": "mobile-dac45.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:584287772550:android:799a64853a71b68cc45607",
+        "android_client_info": {
+          "package_name": "com.mobilemonitoring.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFdx6TYt6Hv3HL5Zdy1l8IK-nQjYVIzXE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
