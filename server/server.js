@@ -9,6 +9,13 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
+app.use((req, res, next) => {
+  if (req.path === '/webhook/uipath') {
+    console.log('UiPath webhook request:', req.method, req.path);
+  }
+  next();
+});
+
 let firebaseReady = false;
 const deviceTokens = new Set();
 
@@ -61,6 +68,10 @@ app.post('/api/devices/register', (req, res) => {
 });
 
 function normalizeUiPathPayload(payload) {
+  if (Array.isArray(payload)) {
+    return normalizeUiPathPayload(payload[0] || {});
+  }
+
   const event = payload.event || payload.data || payload;
   const job = event.job || event.Job || {};
   const process = event.process || event.processName || event.jobName ||
@@ -69,7 +80,8 @@ function normalizeUiPathPayload(payload) {
     payload.processName || payload.ProcessName;
   const rawStatus = event.status || event.state || event.jobState ||
     job.status || job.state || job.State || payload.status || payload.state ||
-    payload.eventType || payload.EventType || payload.type || payload.Type;
+    payload.eventType || payload.EventType || payload.type || payload.Type ||
+    payload.event_name || payload.eventName;
 
   if (!process) return null;
 
@@ -106,9 +118,11 @@ function normalizeUiPathPayload(payload) {
 
 app.post('/webhook/uipath', async (req, res) => {
   const payload = req.body;
+  console.log('UiPath webhook body keys:', Object.keys(payload || {}));
 
   const normalized = normalizeUiPathPayload(payload || {});
   if (!normalized) {
+    console.error('UiPath webhook payload did not contain a process name');
     return res.status(400).json({
       success: false,
       message: 'Could not find process name in UiPath payload',
