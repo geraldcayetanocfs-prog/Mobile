@@ -3,9 +3,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'core/constants/services/firebase_service.dart'
-    as firebase_service;
+import 'core/constants/services/firebase_service.dart' as firebase_service;
 import 'core/constants/services/api_service.dart';
+import 'models/notification_model.dart';
 import 'providers/notification_provider.dart';
 import 'screens/dashboard_screen.dart';
 
@@ -36,23 +36,44 @@ Future<void> main() async {
     debugPrint('Firebase startup skipped: $error');
   }
 
-  runApp(
-    ChangeNotifierProvider.value(
-      value: notificationProvider,
-      child: const MyApp(),
-    ),
-  );
+  try {
+    final items = await ApiService().getNotifications() as List<dynamic>;
+    notificationProvider.setNotifications(
+      items
+          .whereType<Map<String, dynamic>>()
+          .map(NotificationModel.fromJson)
+          .toList(),
+    );
+  } catch (error) {
+    debugPrint('Notification history unavailable: $error');
+  }
+
+  runApp(MyApp(notificationProvider: notificationProvider));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final NotificationProvider? notificationProvider;
+
+  const MyApp({super.key, this.notificationProvider});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    final app = MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'UiPath Monitor',
       home: const DashboardScreen(),
+    );
+
+    if (notificationProvider == null) {
+      return ChangeNotifierProvider(
+        create: (_) => NotificationProvider(),
+        child: app,
+      );
+    }
+
+    return ChangeNotifierProvider.value(
+      value: notificationProvider!,
+      child: app,
     );
   }
 }

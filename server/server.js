@@ -28,22 +28,7 @@ try {
   console.error('Firebase Admin initialization failed:', error.message);
 }
 
-const notifications = [
-  {
-    process: 'EBS',
-    status: 'Failed',
-    message: 'SAP Login Failed',
-    machine: 'UAT01',
-    timestamp: new Date().toISOString(),
-  },
-  {
-    process: 'AR Clearing',
-    status: 'Success',
-    message: 'Completed',
-    machine: 'PRD01',
-    timestamp: new Date().toISOString(),
-  },
-];
+const notifications = [];
 
 app.get('/api/uipath/status', (req, res) => {
   res.json({
