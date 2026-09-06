@@ -60,21 +60,53 @@ app.post('/api/devices/register', (req, res) => {
   });
 });
 
+function normalizeUiPathPayload(payload) {
+  const event = payload.event || payload.data || payload;
+  const process = event.process || event.processName || event.jobName ||
+    event.name || payload.processName;
+  const rawStatus = event.status || event.state || event.jobState ||
+    payload.status || payload.state || payload.eventType;
+
+  if (!process) return null;
+
+  const statusText = String(rawStatus || 'Success').toLowerCase();
+  let status = 'Success';
+  if (statusText.includes('run') || statusText.includes('progress')) {
+    status = 'Running';
+  } else if (
+    statusText.includes('fault') ||
+    statusText.includes('fail') ||
+    statusText.includes('error')
+  ) {
+    status = 'Faulted';
+  }
+
+  return {
+    process: String(process),
+    status,
+    message: String(
+      event.message || event.errorMessage || payload.message ||
+        `${process} ${status}`,
+    ),
+    machine: String(
+      event.machine || event.machineName || event.hostname || 'UNKNOWN',
+    ),
+  };
+}
+
 app.post('/webhook/uipath', async (req, res) => {
   const payload = req.body;
 
-  if (!payload || !payload.process) {
+  const normalized = normalizeUiPathPayload(payload || {});
+  if (!normalized) {
     return res.status(400).json({
       success: false,
-      message: 'Invalid payload',
+      message: 'Could not find process name in UiPath payload',
     });
   }
 
   const notification = {
-    process: payload.process,
-    status: payload.status || 'Success',
-    message: payload.message || 'Bot completed',
-    machine: payload.machine || 'UNKNOWN',
+    ...normalized,
     timestamp: new Date().toISOString(),
   };
 
