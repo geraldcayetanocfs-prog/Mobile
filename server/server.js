@@ -62,21 +62,30 @@ app.post('/api/devices/register', (req, res) => {
 
 function normalizeUiPathPayload(payload) {
   const event = payload.event || payload.data || payload;
+  const job = event.job || event.Job || {};
   const process = event.process || event.processName || event.jobName ||
-    event.name || payload.processName;
+    event.name || event.resourceName || event.ResourceName ||
+    job.processName || job.releaseName || job.ReleaseName ||
+    payload.processName || payload.ProcessName;
   const rawStatus = event.status || event.state || event.jobState ||
-    payload.status || payload.state || payload.eventType;
+    job.status || job.state || job.State || payload.status || payload.state ||
+    payload.eventType || payload.EventType || payload.type || payload.Type;
 
   if (!process) return null;
 
   const statusText = String(rawStatus || 'Success').toLowerCase();
   let status = 'Success';
-  if (statusText.includes('run') || statusText.includes('progress')) {
+  if (
+    statusText.includes('run') ||
+    statusText.includes('progress') ||
+    statusText.includes('started')
+  ) {
     status = 'Running';
   } else if (
     statusText.includes('fault') ||
     statusText.includes('fail') ||
-    statusText.includes('error')
+    statusText.includes('error') ||
+    statusText.includes('suspended')
   ) {
     status = 'Faulted';
   }
@@ -85,11 +94,12 @@ function normalizeUiPathPayload(payload) {
     process: String(process),
     status,
     message: String(
-      event.message || event.errorMessage || payload.message ||
+        event.message || event.errorMessage || payload.message ||
         `${process} ${status}`,
     ),
     machine: String(
-      event.machine || event.machineName || event.hostname || 'UNKNOWN',
+      event.machine || event.machineName || event.MachineName ||
+        event.hostname || job.machineName || 'UNKNOWN',
     ),
   };
 }
